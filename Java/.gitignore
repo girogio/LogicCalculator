@@ -3,3 +3,17 @@
 
 # Ignore Gradle build output directory
 build
+
+.vscode
+
+py-source
+
+.project
+
+build.gradle
+
+gradlew
+
+gradlew.bat
+
+settings.gradle

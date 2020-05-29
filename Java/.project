@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>LogicCalc</name>
-	<comment>Project LogicCalc created by Buildship.</comment>
+	<name>LogicCalculator</name>
+	<comment>Project LogicCalculator created by Buildship.</comment>
 	<projects>
 	</projects>
 	<buildSpec>

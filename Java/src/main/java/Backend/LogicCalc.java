@@ -50,16 +50,15 @@ public class LogicCalc {
 			} else if (logicChar.contains("¬")) {
 				lex1.add(new String[] { "negator", logicChar }); // negator ==> (not A)
 			} else if (logicChar.contains("^")) {
-				lex1.add(new String[] { "conjunctor", logicChar }); // negator ==> (not A)
+				lex1.add(new String[] { "conjunctor", logicChar }); // conjunctor ==> A and B
 			} else if (logicChar.contains("v")) {
-				lex1.add(new String[] { "adjunctor", logicChar }); // negator ==> (not A)
+				lex1.add(new String[] { "adjunctor", logicChar }); // adjunctor ==> A or B
 			} else if (logicChar.contains("u")) {
-				lex1.add(new String[] { "disjunctor", logicChar }); // negator ==> (not A)
-			} else if (logicChar.contains("->")) {
-				lex1.add(new String[] { "subjunctor", completeSubjunctor(logicChar, logicPeekableStream) }); // ==>
-			} else if (logicChar.contains("<->")) {
-				lex1.add(new String[] { "bi-subjunctor", completeBiSubjunctor(logicChar,
-						logicPeekableStream) }); /* bi-subjunctor ==> (A and B) or ((not A) and (not B)) */
+				lex1.add(new String[] { "disjunctor", logicChar }); // disjunctor ==> (A and (not B)) or ((not B) and A)
+			} else if (logicChar.contains("-")) {
+				lex1.add(new String[] { "subjunctor", completeSubjunctor(logicChar, logicPeekableStream) }); // subjunctor ==> (not A) or B
+			} else if (logicChar.contains("<")) {
+				lex1.add(new String[] { "bi-subjunctor", completeBiSubjunctor(logicChar, logicPeekableStream) }); /* bi-subjunctor ==> (A and B) or ((not A) and (not B)) */
 			} else if (logicChar.contains("(")) {
 				lex1.add(new String[] { logicChar, "" });
 			} else if (logicChar.contains(")")) {
@@ -99,7 +98,7 @@ public class LogicCalc {
 		return lexList; // Array of Array of Strings
 	}
 
-	/* 
+	/*
 	 * 
 	 * 
 	 * End LeXer
