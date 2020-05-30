@@ -109,11 +109,13 @@ def lexList(logicExpression):
     number = 1
 
     for token in lexList:
+
         if token[0] == "variable":
             if int(token[1]) >= (number + 1):
                 raise Exception("SyntaxError")
             else:
                 number += 1
+
 
     return lexList
 
@@ -131,13 +133,14 @@ def completeArgument(token, peekableStream):
 
     while peekableStream.currentElem is not None and peekableStream.currentElem[0] != ")":
         if peekableStream.currentElem[0] == "(":
-            ret[1].append(completeArgument(
-                peekableStream.nextElem(), peekableStream))
+            ret[1].append(completeArgument(peekableStream.nextElem(), peekableStream))
+        elif peekableStream.currentElem[0] == "negator":
+            ret[1].append(completeNegator(peekableStream.nextElem(), peekableStream))
         else:
             ret[1].append(peekableStream.nextElem())
 
-    if token[0] != "negator":
-        ret[1].append(peekableStream.nextElem())
+
+    ret[1].append(peekableStream.nextElem())
 
     return ret
 
@@ -184,6 +187,7 @@ def parseList(tokenTable):
     parseList = list(parse(PeekableStream(tokenTable)))
     return parseList
 
+
 ##################################################################################################################################
 
 # Evaluator
@@ -206,7 +210,7 @@ combinations = [
     "variabledisjunctorvariable",
     "variablesubjunctorvariable",
     "variablebi-subjunctorvariable",
-    "variableconjunctorarguenment",
+    "variableconjunctorargument",
     "variableadjunctorargument",
     "variabledisjunctorargument",
     "variablesubjunctorargument",
@@ -263,35 +267,156 @@ def converter(parseList):
     global evalString
     parsePeekableStream = PeekableStream(parseList)
 
+    if parsePeekableStream.currentElem[0] == "argument":
+        parsePeekableStream = PeekableStream(parsePeekableStream.currentElem[1])
+
     while parsePeekableStream.currentElem is not None:
-        if parsePeekableStream.currentElem[0] == "argument":
-            converter(parsePeekableStream.nextElem()[1])
-        elif parsePeekableStream.currentElem[0] == "adjunctor":
-            evalString += " or "
+        if parsePeekableStream.currentElem[0] == "adjunctor":
+            parsePeekableStream.prevElem()
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1] + " or "
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+                evalString += " or "
+
             parsePeekableStream.nextElem()
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1]
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+
         elif parsePeekableStream.currentElem[0] == "conjunctor":
-            evalString += " and "
+            parsePeekableStream.prevElem()
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1] + " and "
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+                evalString += " and "
+
             parsePeekableStream.nextElem()
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1]
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+
         elif parsePeekableStream.currentElem[0] == "disjunctor":
-            pass
+            parsePeekableStream.prevElem()
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1] + " ^ "
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+                evalString += " ^ "
+
+            parsePeekableStream.nextElem()
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1]
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+
         elif parsePeekableStream.currentElem[0] == "subjunctor":
-            pass
+            parsePeekableStream.prevElem()
+
+            evalString += "(not ("
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1] + ")) or "
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+                evalString += ")) or "
+
+            parsePeekableStream.nextElem()
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1]
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+
         elif parsePeekableStream.currentElem[0] == "bi-subjunctor":
-            pass
+            parsePeekableStream.prevElem()
+
+            evalString += "(not ("
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1] + " ^ "
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+                evalString += " ^ "
+
+            parsePeekableStream.nextElem()
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += parsePeekableStream.nextElem()[1]
+            elif parsePeekableStream.currentElem[0] == "argument":
+                converter(parsePeekableStream.nextElem()[1])
+
+            evalString += "))"
+
         elif parsePeekableStream.currentElem[0] == "negator":
-            evalString += "( not" + converter(parsePeekableStream.nextElem()[1]) + ")"
-        elif parsePeekableStream.currentElem[0] == "variable":
-            evalString += parsePeekableStream.nextElem()[1]
+            parsePeekableStream.nextElem()
+
+            if parsePeekableStream.currentElem[0] == "variable":
+                evalString += "(not " + parsePeekableStream.nextElem()[1] + ")"
+            elif parsePeekableStream.currentElem[0] == "argument":
+                evalString += "(not "
+                converter(parsePeekableStream.nextElem()[1])
+                evalString += ")"
+
         elif parsePeekableStream.currentElem[0] == "(":
             evalString += parsePeekableStream.nextElem()[1]
         elif parsePeekableStream.currentElem[0] == ")":
             evalString += parsePeekableStream.nextElem()[1]
+        else:
+            parsePeekableStream.nextElem()
 
-        print("Stuck")
+
+def generateEvalString():
+    global evalString
+    #print(parseList(lexList(input("Enter a logic expression: "))))
+    #checkSyntax(parseList(lexList(input("Enter a logic expression: "))))
+    converter(checkSyntax(parseList(lexList(input("Enter a logic expression: ")))))
+
+    ret = evalString
+    evalString = ""
+
+    return ret
+
+def replaceChar(string, char, replacer):
+    string = list(string)
+
+    for i in range(len(string)):
+        if string[i] == char:
+            string[i] = replacer
+
+    return "".join(string)
 
 while True:
-    evalString = ""
-    #print(parseList(lexList(input("Enter a logic expression: "))))
-    print(checkSyntax(parseList(lexList(input("Enter a logic expression: ")))))
-    converter(checkSyntax(parseList(lexList(input("Enter a logic expression: ")))))
-    print(evalString)
+    maskString = generateEvalString()
+
+    variableCount = 0
+
+    print("\n" + maskString + "\n")
+
+    for c in list(maskString):
+        if re.match("[1-9]", c):
+            if int(c) > variableCount:
+                variableCount = int(c)
+
+    table = createTable(variableCount)
+
+    printTable(table)
+
+    for y in range(len(table[0])):
+        tempString = maskString
+        tempString = list(tempString)
+
+        for x in range(len(table)):
+            tempString = replaceChar(tempString, str(x + 1), str(table[x][y]))
+
+        #print(tempString)
+        print(eval(tempString))
