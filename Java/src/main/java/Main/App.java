@@ -3,21 +3,19 @@ package Main;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import Backend.LogicCalc;
+import Backend.LexList;
+import Backend.Token;
 
 public class App {
-	static LogicCalc LogicCalc = new LogicCalc();
+	LexList LexList = new LexList();
 	static Scanner s = new Scanner(System.in);
 
 	public static void main(String args[]) {
-		String a = s.nextLine();
-		ArrayList<String[]> f = new ArrayList<String[]>();
-		f = LogicCalc.lexList(a);
+		LexList LexList = new LexList();
+		ArrayList<Token> f = new ArrayList<Token>();
+		f = LexList.lexList(s.nextLine());
 		for (int i = 0; i < f.size(); i++) {
-			for (int j = 0; j < f.get(i).length; j++) {
-				System.out.print(f.get(i)[j] + " ");
-
-			}
+			System.out.print(f.get(i).type + ": " + f.get(i).token + ", ");
 		}
 	}
 
