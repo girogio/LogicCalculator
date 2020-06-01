@@ -251,6 +251,23 @@ def checkSyntax(parseList):
 
     return parseList
 
+def optimiseBrackets(checkedParseList):
+    parsePeekableStream = PeekableStream(checkedParseList)
+
+    if len(checkedParseList) == 1:
+        #print("Exec")
+        return optimiseBrackets(checkedParseList[0])
+    elif len(checkedParseList) == 2 and parsePeekableStream.currentElem == "argument":
+        #print("Exec")
+        parsePeekableStream.nextElem()
+        checkedParseList = parsePeekableStream.currentElem
+        checkedParseList.pop(0)
+        checkedParseList.pop()
+        return optimiseBrackets(checkedParseList)
+    else:
+        return checkedParseList
+
+
 
 def breakNegator(peekableStream):
     if peekableStream.nextElem()[0] == "variable":
@@ -267,8 +284,8 @@ def converter(parseList):
     global evalString
     parsePeekableStream = PeekableStream(parseList)
 
-    if parsePeekableStream.currentElem[0] == "argument":
-        parsePeekableStream = PeekableStream(parsePeekableStream.currentElem[1])
+    # if parsePeekableStream.currentElem[0] == "argument":
+    #     parsePeekableStream = PeekableStream(parsePeekableStream.currentElem[1])
 
     while parsePeekableStream.currentElem is not None:
         if parsePeekableStream.currentElem[0] == "adjunctor":
@@ -378,8 +395,8 @@ def converter(parseList):
 def generateEvalString():
     global evalString
     #print(parseList(lexList(input("Enter a logic expression: "))))
-    #checkSyntax(parseList(lexList(input("Enter a logic expression: "))))
-    converter(checkSyntax(parseList(lexList(input("Enter a logic expression: ")))))
+    print(optimiseBrackets(checkSyntax(parseList(lexList(input("Enter a logic expression: "))))))
+    converter(optimiseBrackets(checkSyntax(parseList(lexList(input("Enter a logic expression: "))))))
 
     ret = evalString
     evalString = ""
