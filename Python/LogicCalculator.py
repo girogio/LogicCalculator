@@ -5,10 +5,12 @@ from PeekableStream import PeekableStream
 
 ##################################################################################################################################
 
-
-def createTable(numVars):  # method araylist<list>
+# Function which generates a truth table depending on the number of variables
+def createTable(numVars):
+    # This statement here is what is called a list comprehension in python
     table = [[0 for y in range(2**numVars)] for x in range(numVars)]
 
+    # This nested for loop is used to fill the array with the required values
     for x in range(1, numVars + 1):
         val = False
 
@@ -20,8 +22,8 @@ def createTable(numVars):  # method araylist<list>
 
     return table
 
-
-def printTable(table):  # func to print table
+# Function which prints a table
+def printTable(table):
     for y in range(len(table[0])):
         for x in range(len(table)):
             print(str(table[x][y]) + " ", end='')
@@ -35,7 +37,7 @@ def printTable(table):  # func to print table
 
 ##################################################################################################################################
 
-
+# This function is used to make sure that 2 digit or more numbers are treated as one symbol
 def completeNumber(logicChar, peekableStream, allowed):
     ret = logicChar
 
@@ -44,25 +46,27 @@ def completeNumber(logicChar, peekableStream, allowed):
 
     return ret
 
-
+# This function is used to make sure that the subjunctor is treated as one character in the rest of the program since it is made up of two characters
+# If the next character is not the required character then it raises and exception
 def completeSubjunctor(logicChar, peekableStream):
     ret = logicChar
 
     if peekableStream.nextElem() == ">":
         ret += ">"
     else:
-        raise Exception("GrammarError")
+        raise Exception("InvalidSymbol")
 
     return ret
 
-
+# This function is used to make sure that the bi-subjunctor is treated as one character in the rest of the program since it is made up of three characters
+# If the next character is not the required character then it raises and exception
 def completeBiSubjunctor(logicChar, peekableStream):
     ret = logicChar
 
     if peekableStream.nextElem() == "-":
         ret += "-"
     else:
-        raise Exception("GrammarError")
+        raise Exception("InvalidSymbol")
 
     if peekableStream.nextElem() == ">":
         ret += ">"
@@ -72,6 +76,7 @@ def completeBiSubjunctor(logicChar, peekableStream):
     return ret
 
 
+# This function takes in a string and moves through that string ignoring spaces and classifying characters then it returns an iterable of tokens
 def lex(logicExpression):
     logicPeekableStream = PeekableStream(list(logicExpression))
 
@@ -87,37 +92,27 @@ def lex(logicExpression):
         elif logicChar in "v":
             yield ("adjunctor", logicChar)  # adjunctor ==> A or B
         elif logicChar in "u":
-            # disjunctor ==> (A and (not B)) or ((not B) and A)
-            yield ("disjunctor", logicChar)
+            yield ("disjunctor", logicChar) # disjunctor ==> (A and (not B)) or ((not B) and A)
         elif logicChar in "->":
-            # subjunctor ==> (not A) or B
-            yield ("subjunctor", completeSubjunctor(logicChar, logicPeekableStream))
+            yield ("subjunctor", completeSubjunctor(logicChar, logicPeekableStream)) # subjunctor ==> (not A) or B
         elif logicChar in "<->":
-            # bi-subjunctor ==> (A and B) or ((not A) and (not B))
-            yield ("bi-subjunctor", completeBiSubjunctor(logicChar, logicPeekableStream))
+            yield ("bi-subjunctor", completeBiSubjunctor(logicChar, logicPeekableStream)) # bi-subjunctor ==> (A and B) or ((not A) and (not B))
         elif logicChar in "()":
             yield (logicChar, logicChar)
         elif re.match("[1-9]", logicChar):
             yield ("variable", completeNumber(logicChar, logicPeekableStream, "[1-9]"))
+        elif re.match("[a-zA-Z]", logicChar):
+            yield ("variable", logicChar)
         else:
-            raise Exception("GrammarError")
+            raise Exception("UnrecognisedSymbol") # If symbols not specified above are found it will raise an exception
 
 
+
+# This function converts that iterable tokens into a list
+# then the list is checked to make sure that unnecessary variable names are not used for example if the symbols 1, 2 and 13 are used
+# then the function will raise an exception because instead of 13, 3 should be used
 def lexList(logicExpression):
-    lexList = list(lex(logicExpression))
-
-    number = 1
-
-    for token in lexList:
-
-        if token[0] == "variable":
-            if int(token[1]) >= (number + 1):
-                raise Exception("SyntaxError")
-            else:
-                number += 1
-
-
-    return lexList
+    return list(lex(logicExpression))
 
 
 ##################################################################################################################################
@@ -127,11 +122,15 @@ def lexList(logicExpression):
 ##################################################################################################################################
 
 # Thanks to Giorgio for inspiring me to come up with this specific algorithm
-
+# The completeArgument method is very important as it groups tokens into one argument token as most of the operators are binary and the negator is unary
+# Because of the above an operator can operate on another logic expression for example (1 ^ 2) v 3
+# Know the grouping happens using recursion. Basically, the algorithm follows the principle that the last bracket is the first one to be closed
+# Generally, this would be done using a stack however we are not just checking for balanced brackets
 
 def completeArgument(token, peekableStream):
     ret = ("argument", [token])
 
+    # The != ')' added bracket matching
     while peekableStream.currentElem is not None and peekableStream.currentElem[0] != ")":
         if peekableStream.currentElem[0] == "(":
             ret[1].append(completeArgument(peekableStream.nextElem(), peekableStream))
@@ -140,52 +139,45 @@ def completeArgument(token, peekableStream):
         else:
             ret[1].append(peekableStream.nextElem())
 
-
-    ret[1].append(peekableStream.nextElem())
+    try:
+        ret[1].append(peekableStream.nextElem())
+    except Exception:
+        raise Exception("Unmatched '('")
 
     return ret
 
+# The completeNegator function follows the same principle, ¬1 should be treated as an argument for the other operators and it itself can take a variable or an argument
 
 def completeNegator(token, peekableStream):
     ret = ("argument", [token])
 
-    if peekableStream.currentElem[0] == "variable":
+    if peekableStream.currentElem[0] == "variable": # In the case that it takes a variable
         ret[1].append(peekableStream.nextElem())
-    elif peekableStream.currentElem[0] == "(":
+    elif peekableStream.currentElem[0] == "(": # In the case that it takes an argument
         ret[1].append(completeArgument(peekableStream.nextElem(), peekableStream))
     else:
-        raise Exception("SyntaxError")
+        raise Exception("InvalidSucceedingToken")
 
     return ret
 
+
+# This function is used to create a tree structure using lists 
 
 def parse(peekableTokenTable):
     while peekableTokenTable.currentElem is not None:
         logicToken = peekableTokenTable.nextElem()
 
+        # If a token ( or negator is found the below methods are called
         if logicToken[0] == "(":
             yield (completeArgument(logicToken, peekableTokenTable))
         elif logicToken[0] == "negator":
             yield (completeNegator(logicToken, peekableTokenTable))
-        elif logicToken[0] == "variable":
-            yield logicToken
-        elif logicToken[0] == "conjunctor":
-            yield logicToken
-        elif logicToken[0] == "adjunctor":
-            yield logicToken
-        elif logicToken[0] == "disjunctor":
-            yield logicToken
-        elif logicToken[0] == "subjunctor":
-            yield logicToken
-        elif logicToken[0] == "bi-subjunctor":
-            yield logicToken
         else:
-            raise Exception("SyntaxError")
+            yield logicToken
 
-
+# This function converts the iteratble created by the parse function into a list
 def parseList(tokenTable):
-    parseList = list(parse(PeekableStream(tokenTable)))
-    return parseList
+    return list(parse(PeekableStream(tokenTable)))
 
 
 ##################################################################################################################################
@@ -194,11 +186,11 @@ def parseList(tokenTable):
 
 ##################################################################################################################################
 
-
+#This is a list of all the valid combinations. This list is consulted to make sure that the input is valid
 combinations = [
     "argument",
     "negatorargument",
-    "argumentconjunctorarguenment",
+    "argumentconjunctorargument",
     "argumentadjunctorargument",
     "argumentdisjunctorargument",
     "argumentsubjunctorargument",
@@ -222,12 +214,15 @@ combinations = [
     "argumentbi-subjunctorvariable",
 ]
 
-
+# This function is used to check if the syntax of the input is valid
 def checkSyntax(parsedList):
     parsedPeekableStream = PeekableStream(parsedList)
 
     combination = ""
 
+    # This code segment generates a combination string according to the input
+    # If an argument is found the method is called on that argument and that argument is checked sperately
+    # Otherwise if what you are dealing with is not an argument it just adds the token name to the combination string 
     while parsedPeekableStream.currentElem is not None:
         if parsedPeekableStream.currentElem[0] in "()":
             parsedPeekableStream.nextElem()
@@ -237,6 +232,7 @@ def checkSyntax(parsedList):
         else:
             combination += (parsedPeekableStream.nextElem())[0]
 
+    # This is the section which makes sure that one of the combinations is met if that is not the case it raises an exception
     combinationIncorrect = True
 
     for properCombination in combinations:
@@ -249,6 +245,9 @@ def checkSyntax(parsedList):
     return parsedList
 
 
+# This is probably by far the most complicated method, this is because its job is to convert the disjunctor (u), subjunctor (->) and bi-subjunctor (<->) into nots (¬) ands (^) 
+# and ors (v) [Using a complete system of junctors]
+
 def converter(checkedList):
     checkedPeekableStream = PeekableStream(checkedList)
 
@@ -257,14 +256,22 @@ def converter(checkedList):
     while checkedPeekableStream.currentElem is not None:
         if checkedPeekableStream.currentElem[0] in "()":
             ret.append(checkedPeekableStream.nextElem())
+        
+        # The logic found in this elif statement is basicall the same thing as the logic found in the elif statment for when a variable is found
         elif checkedPeekableStream.currentElem[0] == "argument":
+            # The argument is kept in temporary vairable
             temp = ("argument", converter(checkedPeekableStream.nextElem()[1]))
 
+            # In this if else if ladder we consider the junctor u, -> and <->
+            # If any of these junctors are found they are converted
+            # However to do this the second variable is also required
             if checkedPeekableStream.currentElem is not None and checkedPeekableStream.currentElem[0] == "subjunctor":
                 ret.append(("argument", [("negator", "¬"), temp]))
                 checkedPeekableStream.nextElem()
                 ret.append(("adjunctor", "v"))
 
+                # This is used to check what the next element is and handle both possibilies
+                # In the case where an argument is found the function converter is called again on the argument
                 if checkedPeekableStream.currentElem[0] == "variable":
                     ret.append(checkedPeekableStream.nextElem())
                 elif checkedPeekableStream.currentElem[0] == "argument":
@@ -274,6 +281,8 @@ def converter(checkedList):
                 temp2 = ("argument", [("argument", [("(", "("), ("argument", [("negator", "¬"), temp]), ("adjunctor", "v")]), ("conjunctor", "^"), ("argument", [("(", "("), temp, ("adjunctor", "v")])])
                 checkedPeekableStream.nextElem()
 
+                # Again it checks what the next element is and handles both possibilities
+                # the instructions are a bit more complicated because they are placing the element in the correct position in te temp2 variable
                 if checkedPeekableStream.currentElem[0] == "variable":
                     temp3 = checkedPeekableStream.nextElem()
                     temp2[1][0][1].append(temp3)
@@ -291,6 +300,7 @@ def converter(checkedList):
 
                 ret.append(temp2)
 
+            # This does the same thing as the bi-subjunctor but for the disjunctor
             elif checkedPeekableStream.currentElem is not None and checkedPeekableStream.currentElem[0] == "disjunctor":
                 temp2 = ("argument", [("argument", [("(", "("), temp, ("conjunctor", "^")]), ("adjunctor", "v"), ("argument", [("(", "("), ("argument", [("negator", "¬"), temp]), ("conjunctor", "^")])])
                 checkedPeekableStream.nextElem()
@@ -379,6 +389,8 @@ def converter(checkedList):
     return ret
 
 
+# This function basically generates python code which can be executed using the eval function
+
 def genEvalString(convList):
     convPeekableStream = PeekableStream(convList)
 
@@ -403,9 +415,22 @@ def genEvalString(convList):
 
     return ret
 
+# This function basically is used to create one big function and return the python executable string along with the number of variables and the variables
 
 def evalLogicExpression(logicExpression):
-    return genEvalString(converter(checkSyntax(parseList(lexList(logicExpression)))))
+    tokenList = lexList(logicExpression)
+
+    variableCount = 0
+    variables = []
+
+    for token in tokenList:
+        if token[0] == "variable" and token[1] not in "".join(variables):
+            variableCount += 1
+            variables.append(token[1])
+
+    yield variableCount
+    yield variables
+    yield genEvalString(converter(checkSyntax(parseList(tokenList))))
 
 ##################################################################################################################################
 
@@ -413,43 +438,33 @@ def evalLogicExpression(logicExpression):
 
 ##################################################################################################################################
 
-
-def replaceVariables(string, variable, replacer):
-    string = list(string)
-
-    for i in range(len(string)):
-        if string[i] == variable:
-            string[i] = replacer
-
-    return "".join(string)
+# This is the main loop
 
 while True:
-    maskString = evalLogicExpression(input("Input logic expression: "))
+    temp = list(evalLogicExpression(input("Input logic expression: ")))
 
-    variableCount = 0
+    variableCount = temp[0]
+    variables = temp[1]
+    maskString = temp[2]
     
     print("\n" + maskString + "\n")
     
-    for c in list(maskString):
-        if re.match("[1-9]", c):
-            if int(c) > variableCount:
-                variableCount = int(c)
-    
+    # Generates Appropriate Table
     table = createTable(variableCount)
     
     print("Truth Table\n")
 
+    print(variables)
     printTable(table)
 
     print("\nEvaluated Expression\n")
     
+    # For loop which through all the possibilities and calulates the result of each possibility
     for y in range(len(table[0])):
-        tempString = maskString
-        tempString = list(tempString)
-    
         for x in range(len(table)):
-            tempString = replaceVariables(tempString, str(x + 1), str(table[x][y]))
+            exec(str(variables[x]) + '=' + str(table[x][y]))
     
-        print(eval(tempString))
+        #print(tempString)
+        print(eval(maskString, locals()))
 
     print()

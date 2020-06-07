@@ -1,11 +1,12 @@
 class PeekableStream:
 
+    # Class Constructor
     def __init__(self, stream):
         self.stream = stream
         self.pos = 0
         self.currentElem = self.stream[self.pos]
 
-
+    # Function to move through the elements fo the stream
     def nextElem(self):
         ret = self.currentElem
 
@@ -18,6 +19,6 @@ class PeekableStream:
                 self.currentElem = None
 
         else:
-            raise "End Of Stream"
+            raise Exception("EndOfStream")
 
         return ret
