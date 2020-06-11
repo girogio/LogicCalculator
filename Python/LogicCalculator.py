@@ -37,8 +37,8 @@ def printTable(table):
 
 ##################################################################################################################################
 
-# This function is used to make sure that 2 digit or more numbers are treated as one symbol
-def completeNumber(logicChar, peekableStream, allowed):
+# This function is used to make sure that variables that are longer than one digit get classified as one variable
+def completeVariable(logicChar, peekableStream, allowed):
     ret = logicChar
 
     while peekableStream.currentElem is not None and re.match(allowed, peekableStream.currentElem):
@@ -99,10 +99,10 @@ def lex(logicExpression):
             yield ("bi-subjunctor", completeBiSubjunctor(logicChar, logicPeekableStream)) # bi-subjunctor ==> (A and B) or ((not A) and (not B))
         elif logicChar in "()":
             yield (logicChar, logicChar)
-        elif re.match("[1-9]", logicChar):
-            yield ("variable", completeNumber(logicChar, logicPeekableStream, "[1-9]"))
         elif re.match("[a-zA-Z]", logicChar):
-            yield ("variable", logicChar)
+            yield ("variable", completeVariable(logicChar, logicPeekableStream, "[1-9a-zA-Z]"))
+        elif re.match("[1-9]", logicChar):
+            raise Exception("InvalidVairable")
         else:
             raise Exception("UnrecognisedSymbol") # If symbols not specified above are found it will raise an exception
 
@@ -463,8 +463,7 @@ while True:
     for y in range(len(table[0])):
         for x in range(len(table)):
             exec(str(variables[x]) + '=' + str(table[x][y]))
-    
-        #print(tempString)
+
         print(eval(maskString, locals()))
 
     print()
