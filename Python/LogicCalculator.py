@@ -71,7 +71,7 @@ def completeBiSubjunctor(logicChar, peekableStream):
     if peekableStream.nextElem() == ">":
         ret += ">"
     else:
-        raise Exception("GrammarError")
+        raise Exception("InvalidSymbol")
 
     return ret
 
