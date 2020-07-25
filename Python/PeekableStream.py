@@ -7,7 +7,7 @@ class PeekableStream:
         self.currentElem = self.stream[self.pos]
 
     # Function to move through the elements fo the stream
-    def nextElem(self):
+    def next_elem(self):
         ret = self.currentElem
 
         if self.pos < len(self.stream):
