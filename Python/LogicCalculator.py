@@ -1,7 +1,7 @@
 import re
 from PeekableStream import PeekableStream
-
-
+import tkinter as Logic_Calculator
+from tkinter import Frame
 # Truth Table
 
 ########################################################################################################################
@@ -28,6 +28,7 @@ def create_table(num_vars):
 def print_table(table):
     for y in range(len(table[0])):
         for x in range(len(table)):
+            Logic_Calculator.Label(master=frame_b, text=(str(table[x][y]))).grid(row=y+4, column=x)
             print(str(table[x][y]) + " ", end='')
 
         print()
@@ -472,29 +473,59 @@ def eval_logic_expression(logic_expression):
 # This is the main loop
 
 while True:
-    temp = list(eval_logic_expression(input("Input logic expression: ")))
 
-    variableCount = temp[0]
-    variables = temp[1]
-    maskString = temp[2]
+    window = Logic_Calculator.Tk()
+    frame_a = Logic_Calculator.Frame()
+    frame_b = Logic_Calculator.Frame()
 
-    print("\n" + maskString + "\n")
+    window.title('Logic Calculator')
+    infoLabel = Logic_Calculator.Label(master=frame_a, text= "Input logic expression: ", width=50).grid(row=0, column=0)
 
-    # Generates Appropriate Table
-    table = create_table(variableCount)
+    entry_text = Logic_Calculator.Entry(master=frame_a, )
+    entry_text.grid(row=1, column=0)
 
-    print("Truth Table\n")
+   # spacer = Logic_Calculator.Label(text= "        ").grid(row=2, column=0)
 
-    print(variables)
-    print_table(table)
 
-    print("\nEvaluated Expression\n")
 
-    # For loop which through all the possibilities and calculates the result of each possibility
-    for y in range(len(table[0])):
-        for x in range(len(table)):
-            exec(str(variables[x]) + '=' + str(table[x][y]))
 
-        print(eval(maskString, locals()))
+    def clicked(event):
 
-    print()
+        temp = list(eval_logic_expression(entry_text.get()))
+
+        variable_count = temp[0]
+        variables = temp[1]
+        mask_string = temp[2]
+
+        print("\n" + mask_string + "\n")
+
+        # Generates Appropriate Table
+        table = create_table(variable_count)
+
+        print("Truth Table\n")
+
+        print(variables)
+        print_table(table)
+
+        print("\nEvaluated Expression\n")
+
+        # For loop which through all the possibilities and calculates the result of each possibility
+        for y in range(len(table[0])):
+            for x in range(len(table)):
+                exec(str(variables[x]) + '=' + str(table[x][y]))
+
+            Logic_Calculator.Label(master=frame_b, text=str(eval(mask_string, locals()))).grid(row=y+4, column=x+variable_count)
+            print(eval(mask_string, locals()))
+
+        print()
+
+
+    button = Logic_Calculator.Button(master=frame_a, text="Done")
+    button.grid(row=3, column=0)
+    button.bind("<Button-1>", clicked)
+
+    frame_a.pack()
+    frame_b.pack()
+    window.mainloop()
+
+
