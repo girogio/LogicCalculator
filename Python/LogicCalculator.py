@@ -28,7 +28,11 @@ def create_table(num_vars):
 def print_table(table):
     for y in range(len(table[0])):
         for x in range(len(table)):
-            Logic_Calculator.Label(master=frame_b, text=(str(table[x][y]))).grid(row=y+4, column=x)
+            if table[x][y]:
+                Logic_Calculator.Label(master=frame_b, text=(str(table[x][y])), bg="green").grid(row=y+4, column=x)
+            elif not table[x][y]:
+                 Logic_Calculator.Label(master=frame_b, text=(str(table[x][y])), bg="red").grid(row=y+4, column=x)
+
             print(str(table[x][y]) + " ", end='')
 
         print()
@@ -484,11 +488,6 @@ while True:
     entry_text = Logic_Calculator.Entry(master=frame_a, )
     entry_text.grid(row=1, column=0)
 
-   # spacer = Logic_Calculator.Label(text= "        ").grid(row=2, column=0)
-
-
-
-
     def clicked(event):
 
         temp = list(eval_logic_expression(entry_text.get()))
@@ -514,7 +513,10 @@ while True:
             for x in range(len(table)):
                 exec(str(variables[x]) + '=' + str(table[x][y]))
 
-            Logic_Calculator.Label(master=frame_b, text=str(eval(mask_string, locals()))).grid(row=y+4, column=x+variable_count)
+            if table[x][y]:
+                Logic_Calculator.Label(master=frame_b, text=(str(table[x][y])), bg="green").grid(row=y + 4, column=x+variable_count)
+            elif not table[x][y]:
+                Logic_Calculator.Label(master=frame_b, text=(str(table[x][y])), bg="red").grid(row=y + 4, column=x+variable_count)
             print(eval(mask_string, locals()))
 
         print()
