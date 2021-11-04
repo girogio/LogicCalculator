@@ -2,7 +2,8 @@
 public class StatementGen {
 
     public static void main(String args[]) {
-        System.out.println(new Statement(3).statement);
+        Statement s = new Statement(3);
+        System.out.println("Prefix notation: " + s.prefixStatement);
     }
 
 }
