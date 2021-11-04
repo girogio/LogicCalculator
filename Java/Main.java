@@ -22,21 +22,18 @@ public class Main {
         // }
 
         ArrayList<String[]> rpn = lc.rpn(tokens);
-        // System.out.println(q);
 
         for (int i = 0; i < rpn.size(); i++) {
-            System.out.print(rpn.get(i)[0] + ", " + rpn.get(i)[1] + " ");
+            // System.out.print(rpn.get(i)[0] + ", " + rpn.get(i)[1] + " ");
         }
 
         boolean[][] table = lc.genTable();
         boolean[] table2 = lc.calcTruthTable(rpn);
-        // String[][] stringTable = new String[table.length + 1][table2.length];
         System.out.println();
 
         for (int i = 0; i < table[0].length; i++) {
             for (int j = 0; j < table.length; j++) {
                 System.out.print(table[j][i] + ", ");
-                // stringTable[j][i] = String.valueOf(table[j][i]);
             }
 
             System.out.println();
