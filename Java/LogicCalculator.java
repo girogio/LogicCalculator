@@ -159,7 +159,6 @@ public class LogicCalculator {
 
             resultTable[i] = rpnCalc(mutMask);
 
-            System.out.println();
         }
 
         return resultTable;
