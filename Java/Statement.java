@@ -5,7 +5,7 @@ class Statement {
     private String[] operators = { "v", "^", "->", "<->" };
     private String[] variables = { "P", "Q", "R" };
 
-    public String prefixStatement = "";
+    public String infixStatement = "";
 
     public Statement(int depth) {
         generateStatement(depth);
@@ -16,21 +16,25 @@ class Statement {
     // 2: 1 variable = 1 letter
     public void generateStatement(int depth) {
         if (depth == 1) {
-            prefixStatement += randomVariable();
+            infixStatement += randomVariable();
             return;
         } else {
             switch (new Random().nextInt(3)) { // ran 0-2
             case 0:
-                prefixStatement += "7";
+
+                infixStatement += "7(";
                 generateStatement(depth - 1);
+                infixStatement += ")";
                 break;
             case 1:
-                prefixStatement += randomOperator();
+                infixStatement += "(";
                 generateStatement(depth - 1);
+                infixStatement += randomOperator();
                 generateStatement(depth - 1);
+                infixStatement += ")";
                 break;
             case 2:
-                prefixStatement += randomVariable();
+                infixStatement += randomVariable();
                 break;
             }
         }
