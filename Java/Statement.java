@@ -2,7 +2,7 @@ import java.util.Random;
 
 class Statement {
 
-    private String[] operators = { "v", "^", "->", "<->" };
+    private String[] operators = { "v", "^", "=>", "<=>" };
     private String[] variables = { "P", "Q", "R" };
 
     public String infixStatement = "";
@@ -19,7 +19,7 @@ class Statement {
             infixStatement += randomVariable();
             return;
         } else {
-            switch (new Random().nextInt(3)) { // ran 0-2
+            switch (new Random().nextInt(5)) { // ran 0-2
             case 0:
 
                 infixStatement += "7(";
@@ -27,13 +27,15 @@ class Statement {
                 infixStatement += ")";
                 break;
             case 1:
+            case 2:
                 infixStatement += "(";
                 generateStatement(depth - 1);
                 infixStatement += randomOperator();
                 generateStatement(depth - 1);
                 infixStatement += ")";
                 break;
-            case 2:
+            case 3:
+            case 4:
                 infixStatement += randomVariable();
                 break;
             }
