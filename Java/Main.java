@@ -120,8 +120,8 @@ public class Main {
                  * TODO: Implement a try-catch block for better error handling
                  */
 
-                int firstExpr = 0;
-                int secondExpr = 0;
+                int firstExpr;
+                int secondExpr;
 
                 try {
                     System.out.print("Enter first expresssion: ");
@@ -130,17 +130,17 @@ public class Main {
                     System.out.print("Enter second expression: ");
                     secondExpr = sc.nextInt();
 
-                    if (firstExpr < 1 && firstExpr > lc.bufferSize() && secondExpr < 1
-                            && secondExpr > lc.bufferSize()) {
-
+                    if ((firstExpr < 1 || firstExpr > lc.bufferSize()) || (secondExpr < 1 || secondExpr > lc.bufferSize())) {
+                        System.out.println("Input must between 1  and " + lc.bufferSize() + " (inclusive).");
+                        continue;
                     }
-                } catch (InputMismatchException e) {
+
+                    System.out.println();
+                    lc.checkImplication(firstExpr - 1, secondExpr - 1);
+                
+                } catch(InputMismatchException e) {
                     e.printStackTrace();
                 }
-
-                System.out.println();
-
-                lc.checkImplication(firstExpr - 1, secondExpr - 1);
             }
 
         }
